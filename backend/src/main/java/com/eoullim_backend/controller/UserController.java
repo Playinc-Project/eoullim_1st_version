@@ -15,7 +15,7 @@ public class UserController {
     
     private final UserService userService;
     
-    // 회원가입: POST /api/users/signup
+    // 회원가입: POST /api/users/signup (구체적인 경로를 먼저)
     @PostMapping("/signup")
     public ResponseEntity<UserDTO> signup(@RequestBody UserRequestDTO requestDTO) {
         try {
@@ -39,7 +39,7 @@ public class UserController {
         }
     }
     
-    // 사용자 조회: GET /api/users/{id}
+    // 사용자 조회: GET /api/users/{id} (PathVariable 매핑을 마지막에)
     @GetMapping("/{id}")
     public ResponseEntity<UserDTO> getUser(@PathVariable Long id) {
         try {

@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PostRequestDTO {
+    private Long userId;
     private String title;
     private String content;
 }

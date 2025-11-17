@@ -18,14 +18,24 @@ public class PostController {
     
     // 게시글 생성: POST /api/posts
     @PostMapping
-    public ResponseEntity<PostDTO> createPost(
-            @RequestParam Long userId,
-            @RequestBody PostRequestDTO requestDTO) {
+    public ResponseEntity<?> createPost(@RequestBody PostRequestDTO requestDTO) {
         try {
-            PostDTO post = postService.createPost(userId, requestDTO);
+            System.out.println("Request DTO: " + requestDTO); // 디버그 로그
+            if (requestDTO.getUserId() == null) {
+                return ResponseEntity.badRequest().body("UserId is required");
+            }
+            if (requestDTO.getTitle() == null || requestDTO.getTitle().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("Title is required");
+            }
+            if (requestDTO.getContent() == null || requestDTO.getContent().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("Content is required");
+            }
+            
+            PostDTO post = postService.createPost(requestDTO.getUserId(), requestDTO);
             return ResponseEntity.ok(post);
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
+            System.out.println("Error: " + e.getMessage()); // 디버그 로그
+            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
         }
     }
     
@@ -58,10 +68,9 @@ public class PostController {
     @PutMapping("/{id}")
     public ResponseEntity<PostDTO> updatePost(
             @PathVariable Long id,
-            @RequestParam Long userId,
             @RequestBody PostRequestDTO requestDTO) {
         try {
-            PostDTO post = postService.updatePost(id, userId, requestDTO);
+            PostDTO post = postService.updatePost(id, requestDTO.getUserId(), requestDTO);
             return ResponseEntity.ok(post);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();

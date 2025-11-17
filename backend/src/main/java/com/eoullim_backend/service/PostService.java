@@ -8,6 +8,7 @@ import com.eoullim_backend.repository.PostRepository;
 import com.eoullim_backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,6 +20,7 @@ public class PostService {
     private final UserRepository userRepository;
     
     // 게시글 생성
+    @Transactional
     public PostDTO createPost(Long userId, PostRequestDTO requestDTO) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
@@ -27,8 +29,6 @@ public class PostService {
                 .user(user)
                 .title(requestDTO.getTitle())
                 .content(requestDTO.getContent())
-                .viewCount(0)
-                .likeCount(0)
                 .build();
         
         Post savedPost = postRepository.save(post);
