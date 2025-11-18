@@ -21,7 +21,7 @@ public class UserController {
     public ResponseEntity<UserDTO> signup(@RequestBody UserRequestDTO requestDTO) {
         try {
             UserDTO user = userService.signup(requestDTO);
-            return ResponseEntity.ok(user);
+            return ResponseEntity.status(201).body(user);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
         }
@@ -35,7 +35,7 @@ public class UserController {
             return ResponseEntity.ok(user);
         } catch (RuntimeException e) {
             // 에러 메시지를 JSON으로 반환
-            return ResponseEntity.badRequest()
+            return ResponseEntity.status(401)
                     .body(new ErrorResponse(e.getMessage()));
         }
     }

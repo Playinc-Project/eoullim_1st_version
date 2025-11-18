@@ -1,9 +1,12 @@
 package com.eoullim_backend.controller;
 
+import com.eoullim_backend.dto.CommentDTO;
 import com.eoullim_backend.dto.PostDTO;
 import com.eoullim_backend.dto.PostRequestDTO;
+import com.eoullim_backend.service.CommentService;
 import com.eoullim_backend.service.PostService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -15,6 +18,7 @@ import java.util.List;
 public class PostController {
     
     private final PostService postService;
+    private final CommentService commentService;
     
     // 게시글 생성: POST /api/posts
     @PostMapping
@@ -43,6 +47,15 @@ public class PostController {
     @GetMapping
     public ResponseEntity<List<PostDTO>> getAllPosts() {
         List<PostDTO> posts = postService.getAllPosts();
+        return ResponseEntity.ok(posts);
+    }
+    
+    // 페이지네이션으로 게시글 조회: GET /api/posts/page
+    @GetMapping("/page")
+    public ResponseEntity<Page<PostDTO>> getPostsWithPagination(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Page<PostDTO> posts = postService.getPostsWithPagination(page, size);
         return ResponseEntity.ok(posts);
     }
     
@@ -85,6 +98,30 @@ public class PostController {
         try {
             postService.deletePost(id, userId);
             return ResponseEntity.ok().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+    
+    // 게시글의 댓글 조회: GET /api/posts/{postId}/comments
+    @GetMapping("/{postId}/comments")
+    public ResponseEntity<List<CommentDTO>> getCommentsByPost(@PathVariable Long postId) {
+        try {
+            List<CommentDTO> comments = commentService.getCommentsByPost(postId);
+            return ResponseEntity.ok(comments);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+    
+    // 게시글에 댓글 작성: POST /api/posts/{postId}/comments
+    @PostMapping("/{postId}/comments")
+    public ResponseEntity<CommentDTO> createComment(
+            @PathVariable Long postId,
+            @RequestBody CommentDTO commentDTO) {
+        try {
+            CommentDTO comment = commentService.createComment(postId, commentDTO.getUserId(), commentDTO.getContent());
+            return ResponseEntity.status(201).body(comment);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
         }

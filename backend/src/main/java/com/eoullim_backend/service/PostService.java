@@ -7,6 +7,12 @@ import com.eoullim_backend.entity.User;
 import com.eoullim_backend.repository.PostRepository;
 import com.eoullim_backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
@@ -19,8 +25,9 @@ public class PostService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     
-    // 게시글 생성
+    // 게시글 생성 - 캐시 삭제
     @Transactional
+    @CacheEvict(value = "posts", allEntries = true)
     public PostDTO createPost(Long userId, PostRequestDTO requestDTO) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
@@ -35,7 +42,8 @@ public class PostService {
         return convertToDTO(savedPost);
     }
     
-    // 게시글 조회 (단일)
+    // 게시글 조회 (단일) - 캐시 적용
+    @Cacheable(value = "posts", key = "#id")
     public PostDTO getPost(Long id) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
@@ -47,12 +55,19 @@ public class PostService {
         return convertToDTO(post);
     }
     
-    // 모든 게시글 조회
+    // 모든 게시글 조회 - 캐시 적용
+    @Cacheable(value = "posts", key = "'all'")
     public List<PostDTO> getAllPosts() {
         return postRepository.findAllByOrderByCreatedAtDesc()
                 .stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
+    }
+    
+    // 페이지네이션으로 게시글 조회
+    public Page<PostDTO> getPostsWithPagination(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        return postRepository.findAll(pageable).map(this::convertToDTO);
     }
     
     // 사용자별 게시글 조회
