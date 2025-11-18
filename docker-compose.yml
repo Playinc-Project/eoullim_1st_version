@@ -1,0 +1,56 @@
+services:
+  # MySQL 데이터베이스
+  mysql:
+    image: mysql:8.0
+    container_name: eoullim-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: eoullim
+      MYSQL_USER: eoullim_user
+      MYSQL_PASSWORD: eoullim_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - eoullim-network
+
+  # Spring Boot Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: eoullim-backend
+    depends_on:
+      - mysql
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/eoullim
+      SPRING_DATASOURCE_USERNAME: eoullim_user
+      SPRING_DATASOURCE_PASSWORD: eoullim_password
+      SPRING_PROFILES_ACTIVE: docker
+    ports:
+      - "8080:8080"
+    networks:
+      - eoullim-network
+
+  # React Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: eoullim-frontend
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+    environment:
+      REACT_APP_API_URL: http://localhost:8080/api
+    networks:
+      - eoullim-network
+
+volumes:
+  mysql_data:
+
+networks:
+  eoullim-network:
+    driver: bridge
