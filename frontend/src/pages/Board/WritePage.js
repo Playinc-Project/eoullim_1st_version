@@ -1,56 +1,103 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { postAPI } from '../../services/api';
 import './WritePage.css';
 
-const WritePage = () => {
-  const navigate = useNavigate();
+function WritePage() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
+  const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const newMessage = { id: Date.now(), senderName: '익명', title: title, content: content, createdAt: new Date().toLocaleDateString() };
-    console.log('New Message:', newMessage);
-    const messages = JSON.parse(localStorage.getItem('messages')) || [];
-    messages.push(newMessage);
-    localStorage.setItem('messages', JSON.stringify(messages));
-    navigate('/message');
+
+    if (!title.trim()) {
+      setError('제목을 입력하세요');
+      return;
+    }
+    if (!content.trim()) {
+      setError('내용을 입력하세요');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // API 호출로 게시글 생성
+      await postAPI.create(currentUser.id, title, content);
+
+      // 성공 후 메인 페이지로 이동
+      navigate('/main');
+    } catch (err) {
+      setError('게시글 작성에 실패했습니다');
+      console.error('Write error:', err);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  if (!currentUser.id) {
+    return (
+      <div className="write-container">
+        <p>로그인이 필요합니다</p>
+      </div>
+    );
+  }
 
   return (
     <div className="write-container">
-      <header className="main-header">
-        <div className="header-left" style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-          <Link to="/main" className="main-title" style={{ textDecoration: 'none', color: 'black' }}>어울림</Link>
-          <h1 className="page-title" style={{ textAlign: 'center', margin: '0 auto' }}>게시글 쓰기</h1>
-        </div>
-      </header>
+      <div className="write-card">
+        <h1>게시글 작성</h1>
 
-      <form onSubmit={handleSubmit} className="write-form">
-        <input
-          type="text"
-          placeholder="제목을 입력하세요"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className="title-input"
-        />
-        <textarea
-          placeholder="내용을 입력하세요"
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          className="content-input"
-        />
-        <div className="button-group">
-          <button type="button" onClick={() => navigate(-1)} className="cancel-button">
-            취소
-          </button>
-          <button type="submit" className="submit-button">
-            등록
-          </button>
-        </div>
-      </form>
+        {error && <div className="error-message">{error}</div>}
+
+        <form onSubmit={handleSubmit} className="write-form">
+          {/* 제목 입력 */}
+          <div className="form-group">
+            <label>제목</label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="제목을 입력하세요"
+              maxLength="100"
+            />
+          </div>
+
+          {/* 내용 입력 */}
+          <div className="form-group">
+            <label>내용</label>
+            <textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="내용을 입력하세요"
+              rows="10"
+            ></textarea>
+          </div>
+
+          {/* 버튼 그룹 */}
+          <div className="form-buttons">
+            <button
+              type="submit"
+              className="submit-button"
+              disabled={loading}
+            >
+              {loading ? '작성 중...' : '게시'}
+            </button>
+            <button
+              type="button"
+              className="cancel-button"
+              onClick={() => navigate('/main')}
+            >
+              취소
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
-};
+}
 
 export default WritePage;

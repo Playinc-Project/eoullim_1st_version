@@ -1,80 +1,168 @@
-// PostDetailPage.js
-import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { postAPI, commentAPI } from '../../services/api';
 import './PostDetailPage.css';
 
-const PostDetailPage = () => {
+function PostDetailPage() {
+  const { id } = useParams();
   const navigate = useNavigate();
-  const location = useLocation();
-  const fromMainPage = location.state?.from === 'main';
+  const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
 
-  const handleBack = () => {
-    if (fromMainPage) {
-      navigate('/main');
-    } else {
-      navigate('/board');
+  const [post, setPost] = useState(null);
+  const [comments, setComments] = useState([]);
+  const [commentContent, setCommentContent] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  // 게시글 & 댓글 로드
+  useEffect(() => {
+    loadPost();
+  }, [id]);
+
+  const loadPost = async () => {
+    try {
+      setLoading(true);
+      
+      // 게시글 조회
+      const postResponse = await postAPI.getOne(id);
+      setPost(postResponse.data);
+
+      // 댓글 조회
+      const commentsResponse = await commentAPI.getByPost(id);
+      setComments(commentsResponse.data || []);
+      
+      setError('');
+    } catch (err) {
+      setError('게시글을 불러올 수 없습니다');
+      console.error('Load error:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleMenuClick = () => {
-    navigate('/messages/write');
+  const handleAddComment = async (e) => {
+    e.preventDefault();
+
+    if (!commentContent.trim()) {
+      alert('댓글 내용을 입력하세요');
+      return;
+    }
+
+    try {
+      // 댓글 추가
+      await commentAPI.create(id, currentUser.id, commentContent);
+      
+      // 댓글 목록 새로고침
+      await loadPost();
+      setCommentContent('');
+    } catch (err) {
+      alert('댓글 작성에 실패했습니다');
+      console.error('Comment error:', err);
+    }
   };
 
-  const comments = [
-    { id: 1, author: '익명', content: '어울림 최고', date: '12/04' },
-    { id: 2, author: '익명', content: '어울림 최고', date: '12/04' },
-    { id: 3, author: '익명', content: '어울림 최고', date: '12/04' },
-  ];
+  const handleDeleteComment = async (commentId) => {
+    if (!window.confirm('댓글을 삭제하시겠습니까?')) return;
+
+    try {
+      await commentAPI.delete(commentId, currentUser.id);
+      setComments(comments.filter(c => c.id !== commentId));
+    } catch (err) {
+      alert('댓글 삭제에 실패했습니다');
+      console.error('Delete error:', err);
+    }
+  };
+
+  if (!currentUser.id) {
+    return <div className="detail-container"><p>로그인이 필요합니다</p></div>;
+  }
+
+  if (loading) {
+    return <div className="detail-container"><p>로딩 중...</p></div>;
+  }
+
+  if (!post) {
+    return <div className="detail-container"><p>게시글을 찾을 수 없습니다</p></div>;
+  }
 
   return (
-    <div className="post-detail-container">
-      <header className="post-detail-header">
-        <button onClick={handleBack} className="back-button">
-          ←
+    <div className="detail-container">
+      {/* 헤더 */}
+      <header className="detail-header">
+        <button onClick={() => navigate('/main')} className="back-button">
+          ← 뒤로
         </button>
-        <h1 className="board-title">자유게시판</h1>
+        <h1>게시글</h1>
+        <div></div>
       </header>
 
-      <div className="post-detail-content">
-        <div className="post-author-info">
-          <img src="/default-profile.png" alt="프로필" className="profile-image" />
-          <div className="author-details">
-            <span className="author-name">익명</span>
-            <span className="post-date">12/04</span>
-          </div>
+      {/* 게시글 */}
+      <div className="post-detail">
+        <h2 className="post-detail-title">{post.title}</h2>
+        <div className="post-detail-meta">
+          <span className="post-author">{post.userId}</span>
+          <span className="post-time">
+            {new Date(post.createdAt).toLocaleString()}
+          </span>
+          <span className="post-views">조회 {post.viewCount}</span>
         </div>
 
-        <div className="post-main-content">
-          <h2 className="post-title">어울림 짱짱굿!</h2>
-          <p className="post-text">솔까 어울림 최고지 않남?</p>
+        <div className="post-detail-content">
+          {post.content}
         </div>
 
-        <div className="post-stats">
-          <span className="likes">👍 100</span>
-          <span className="comments">💬 100</span>
-          <span className="bookmarks">⭐ 100</span>
+        <div className="post-detail-stats">
+          <span>♥ {post.likeCount} 좋아요</span>
+          <span>💬 {comments.length} 댓글</span>
         </div>
+      </div>
 
-        <div className="comments-section">
-          {comments.map(comment => (
-            <div key={comment.id} className="comment">
-              <div className="comment-author-info">
-                <img src="/default-profile.png" alt="프로필" className="comment-profile" />
-                <div className="comment-details" style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                  <span className="comment-author">{comment.author}</span>
-                  <span className="comment-content">{comment.content}</span>
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <span className="comment-date">{comment.date}</span>
-                    <button className="action-button" onClick={() => navigate('/messages/write')}>⋮</button>
-                  </div>
+      {/* 댓글 섹션 */}
+      <div className="comments-section">
+        <h3>댓글 ({comments.length})</h3>
+
+        {/* 댓글 작성 */}
+        <form onSubmit={handleAddComment} className="comment-form">
+          <textarea
+            value={commentContent}
+            onChange={(e) => setCommentContent(e.target.value)}
+            placeholder="댓글을 입력하세요"
+            rows="3"
+          ></textarea>
+          <button type="submit" className="comment-submit">
+            댓글 작성
+          </button>
+        </form>
+
+        {/* 댓글 목록 */}
+        <div className="comments-list">
+          {comments.length === 0 ? (
+            <p className="no-comments">댓글이 없습니다</p>
+          ) : (
+            comments.map((comment) => (
+              <div key={comment.id} className="comment-item">
+                <div className="comment-header">
+                  <span className="comment-author">{comment.userId}</span>
+                  <span className="comment-time">
+                    {new Date(comment.createdAt).toLocaleString()}
+                  </span>
+                  {comment.userId === currentUser.id && (
+                    <button
+                      onClick={() => handleDeleteComment(comment.id)}
+                      className="comment-delete"
+                    >
+                      삭제
+                    </button>
+                  )}
                 </div>
+                <p className="comment-content">{comment.content}</p>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
     </div>
   );
-};
+}
 
 export default PostDetailPage;
