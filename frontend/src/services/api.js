@@ -39,6 +39,9 @@ export const postAPI = {
   create: (userId, title, content) =>
     api.post('/posts', { title, content }, { params: { userId } }),
   
+  toggleLike: (postId, userId) =>
+  api.post(`/posts/${postId}/like`, {}, { params: { userId } }),
+
   getAll: () =>
     api.get('/posts'),
   
@@ -49,7 +52,7 @@ export const postAPI = {
     api.get(`/posts/user/${userId}`),
   
   update: (postId, userId, title, content) =>
-    api.put(`/posts/${postId}`, { title, content }, { params: { userId } }),
+    api.put(`/posts/${postId}`, { userId, title, content }),
   
   delete: (postId, userId) =>
     api.delete(`/posts/${postId}`, { params: { userId } }),

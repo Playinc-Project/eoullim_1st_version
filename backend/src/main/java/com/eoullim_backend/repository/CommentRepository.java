@@ -9,4 +9,5 @@ import java.util.List;
 public interface CommentRepository extends JpaRepository<Comment, Long> {
     List<Comment> findByPostId(Long postId);
     List<Comment> findByUserId(Long userId);
+    void deleteByPostId(Long postId); // 게시글 삭제 시 댓글도 함께 삭제
 }

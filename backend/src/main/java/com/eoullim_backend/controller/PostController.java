@@ -3,6 +3,7 @@ package com.eoullim_backend.controller;
 import com.eoullim_backend.dto.CommentDTO;
 import com.eoullim_backend.dto.PostDTO;
 import com.eoullim_backend.dto.PostRequestDTO;
+import com.eoullim_backend.entity.Post;
 import com.eoullim_backend.service.CommentService;
 import com.eoullim_backend.service.PostService;
 import lombok.RequiredArgsConstructor;
@@ -124,6 +125,16 @@ public class PostController {
             return ResponseEntity.status(201).body(comment);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
+        }
+    }
+    
+    @PostMapping("/{id}/like")
+    public ResponseEntity<?> toggleLike(@PathVariable Long id, @RequestParam Long userId) {
+        try {
+            Post post = postService.toggleLike(id, userId);
+            return ResponseEntity.ok(post);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("좋아요 처리에 실패했습니다");
         }
     }
 }
