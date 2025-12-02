@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { messageAPI, authAPI } from '../../services/api';
 import './MessageWrite.css';
 
@@ -9,7 +9,43 @@ const MessageWrite = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const navigate = useNavigate();
+    const location = useLocation();
     const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+
+    // 초기 수신자 자동완성: 이메일 또는 사용자 ID로 전달된 값 처리
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const emailFromQuery = params.get('to') || undefined;
+        const userIdFromQuery = params.get('toUserId');
+        const emailFromState = location.state?.recipientEmail;
+
+        const trySetEmail = async () => {
+            // 우선순위: state -> query email -> query userId
+            if (emailFromState && emailFromState.includes('@')) {
+                setRecipientEmail(emailFromState);
+                return;
+            }
+            if (emailFromQuery && emailFromQuery.includes('@')) {
+                setRecipientEmail(emailFromQuery);
+                return;
+            }
+            if (userIdFromQuery) {
+                try {
+                    const prof = await authAPI.getById(parseInt(userIdFromQuery, 10));
+                    const user = prof?.data;
+                    if (user?.email) {
+                        setRecipientEmail(user.email);
+                    }
+                } catch (e) {
+                    // 실패해도 폼은 그대로 사용 가능
+                    console.warn('수신자 조회 실패(toUserId):', e);
+                }
+            }
+        };
+
+        trySetEmail();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [location.search]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();

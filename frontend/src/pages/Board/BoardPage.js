@@ -48,7 +48,23 @@ const BoardPage = () => {
                 <div className="post-stats">
                   <span className="likes">👍 {post.likes}</span>
                   <span className="comments">💬 {post.comments}</span>
-                  <button className="action-button" onClick={() => navigate('/messages/write')}>⋮</button>
+                  <button
+                    className="action-button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const recipientEmail = post.authorEmail || post.userEmail || post.author;
+                      // 이메일로 추정되는 값만 state로 전달, 아니면 기본 페이지로 이동
+                      if (typeof recipientEmail === 'string' && recipientEmail.includes('@')) {
+                        navigate('/messages/write', { state: { recipientEmail } });
+                      } else if (post.userId) {
+                        navigate(`/messages/write?toUserId=${post.userId}`);
+                      } else {
+                        navigate('/messages/write');
+                      }
+                    }}
+                  >
+                    ⋮
+                  </button>
                 </div>
               </div>
             </div>

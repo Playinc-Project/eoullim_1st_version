@@ -109,6 +109,24 @@ function Main() {
                   <div className="post-stats">
                     <span>♥ {post.likeCount}</span>
                     <span>💬 댓글</span>
+                    <button
+                      className="post-more-button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const recipientEmail = post.userEmail || post.authorEmail;
+                        if (recipientEmail && recipientEmail.includes('@')) {
+                          navigate('/messages/write', { state: { recipientEmail } });
+                        } else if (post.userId) {
+                          navigate(`/messages/write?toUserId=${post.userId}`);
+                        } else {
+                          navigate('/messages/write');
+                        }
+                      }}
+                      title="쪽지 보내기"
+                    >
+                      ⋮
+                    </button>
                   </div>
                 </div>
               </Link>

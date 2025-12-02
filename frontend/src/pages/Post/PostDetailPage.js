@@ -324,6 +324,20 @@ function PostDetailPage() {
                       삭제
                     </button>
                   )}
+                  <button
+                    onClick={() => {
+                      const recipientEmail = comment.userEmail || comment.email;
+                      if (recipientEmail && recipientEmail.includes('@')) {
+                        navigate('/messages/write', { state: { recipientEmail } });
+                      } else {
+                        navigate(`/messages/write?toUserId=${comment.userId}`);
+                      }
+                    }}
+                    className="comment-more"
+                    title="쪽지 보내기"
+                  >
+                    ⋮
+                  </button>
                 </div>
                 <p className="comment-content">{comment.content}</p>
               </div>
