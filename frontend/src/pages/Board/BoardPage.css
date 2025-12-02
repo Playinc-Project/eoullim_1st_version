@@ -31,10 +31,21 @@
   text-align: right;
 }
 
+/* ═══════════════════════════════════════════════════════════ */
+/* 핵심: posts-wrapper와 posts-list 재구성 */
+/* ═══════════════════════════════════════════════════════════ */
+
+.posts-wrapper {
+  position: relative;  /* ← 기준점! */
+  width: 100%;  /* ← 명시적 너비 */
+  padding-bottom: 100px;  /* ← FAB 공간 */
+}
+
 .posts-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  /* padding-bottom 제거! */
 }
 
 .post-card {
@@ -44,7 +55,7 @@
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-.category-header {
+.post-header {
   margin-bottom: 10px;
 }
 
@@ -53,7 +64,7 @@
   font-size: 13px;
 }
 
-.post-content-wrapper {
+.post-main {
   margin: 10px 0;
 }
 
@@ -68,6 +79,7 @@
   margin: 0;
   font-size: 13px;
   color: #666;
+  text-align: left;
 }
 
 .post-footer {
@@ -75,13 +87,24 @@
   justify-content: space-between;
   align-items: center;
   margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #eee;
 }
 
-.post-info {
+.footer-left {
   display: flex;
   gap: 8px;
   font-size: 12px;
   color: #888;
+}
+
+.post-author {
+  font-weight: 500;
+  color: #333;
+}
+
+.post-date {
+  color: #999;
 }
 
 .post-stats {
@@ -89,21 +112,103 @@
   gap: 12px;
   font-size: 13px;
   color: #666;
+  align-items: center;
 }
 
-.write-button {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  width: 60px;
-  height: 60px;
-  background-color: #6C63FF;
-  color: white;
-  border-radius: 50%;
+.likes,
+.comments {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.action-button {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: #999;
+  padding: 0;
+}
+
+.action-button:hover {
+  color: #666;
+}
+
+/* ═══════════════════════════════════════════════════════════ */
+/* FAB (Floating Action Button) - 절대 위치 (.posts-wrapper 기준) */
+/* ═══════════════════════════════════════════════════════════ */
+
+.fab-wrapper {
+  position: absolute;         /* .main-container 기준 절대 위치 */
+  bottom: 20px;               /* 컨테이너 하단에서 20px */
+  right: 50px;                /* 컨테이너 오른쪽에서 20px */
+  z-index: 1000;
+}
+
+.add-button-link {
+  text-decoration: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  text-decoration: none;
+}
+
+.add-button {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: none;
+  background: #6C63FF;
+  color: white;
   font-size: 32px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.add-button:hover {
+  background: #8E44AD;
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(155, 89, 182, 0.6);
+}
+
+.add-button:active {
+  transform: scale(0.95);
+}
+
+/* ═══════════════════════════════════════════════════════════ */
+/* 반응형 디자인 */
+/* ═══════════════════════════════════════════════════════════ */
+
+@media (max-width: 320px) {
+  .fab-wrapper {
+    bottom: 15px;
+    padding-right: 10px;
+  }
+  
+  .add-button {
+    width: 50px;
+    height: 50px;
+    font-size: 28px;
+  }
+
+  .main-container {
+    padding: 15px;
+  }
+}
+
+@media (min-width: 768px) {
+  .fab-wrapper {
+    bottom: 30px;
+    padding-right: 20px;
+  }
+
+  .add-button {
+    width: 70px;
+    height: 70px;
+    font-size: 36px;
+  }
 }

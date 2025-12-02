@@ -25,14 +25,21 @@ function WritePage() {
 
     setLoading(true);
     try {
-      // API 호출로 게시글 생성
-      await postAPI.create(currentUser.id, title, content);
-
-      // 성공 후 메인 페이지로 이동
-      navigate('/main');
+      if (!currentUser.id) {
+        throw new Error('로그인 정보가 없습니다');
+      }
+      const response = await postAPI.create(currentUser.id, title, content);
+      if (!response?.data?.id) {
+        console.warn('응답 데이터에 id가 없습니다:', response?.data);
+      }
+      navigate(`/post/${response.data.id}`);
     } catch (err) {
-      setError('게시글 작성에 실패했습니다');
       console.error('Write error:', err);
+      if (err.response?.data) {
+        setError(err.response.data);
+      } else {
+        setError('게시글 작성에 실패했습니다');
+      }
     } finally {
       setLoading(false);
     }

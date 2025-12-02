@@ -21,8 +21,14 @@ api.interceptors.request.use((config) => {
 
 // Auth API
 export const authAPI = {
-  signup: (email, password, username) =>
-    api.post('/users/signup', { email, password, username }),
+  // Accepts either an object {email, password, username, ...}
+  // or positional args (email, password, username)
+  signup: (emailOrData, password, username) => {
+    const payload = typeof emailOrData === 'object'
+      ? emailOrData
+      : { email: emailOrData, password, username };
+    return api.post('/users/signup', payload);
+  },
   
   login: (email, password) =>
     api.post('/users/login', { email, password }),
@@ -32,12 +38,16 @@ export const authAPI = {
   
   updateProfile: (userId, data) =>
     api.put(`/users/${userId}`, data),
+
+  deleteUser: (userId) =>
+    api.delete(`/users/${userId}`),
 };
 
 // Post API
 export const postAPI = {
+  // Create post: backend expects userId inside request body (PostRequestDTO)
   create: (userId, title, content) =>
-    api.post('/posts', { title, content }, { params: { userId } }),
+    api.post('/posts', { userId, title, content }),
   
   toggleLike: (postId, userId) =>
   api.post(`/posts/${postId}/like`, {}, { params: { userId } }),

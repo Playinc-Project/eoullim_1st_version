@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { IoWarning, IoChevronForward } from 'react-icons/io5';
 import { useAuth } from '../../contexts/AuthContext';
+import { authAPI } from '../../services/api';
 import './ProfilePage.css';
 
 const ProfilePage = () => {
@@ -12,6 +13,27 @@ const ProfilePage = () => {
    if (window.confirm('로그아웃하시겠습니까?')) {
      logout();
      navigate('/');
+   }
+ };
+
+ const handleWithdraw = async () => {
+   if (!user?.id) {
+     window.alert('로그인이 필요합니다.');
+     return;
+   }
+   if (!window.confirm('정말로 회원탈퇴하시겠습니까? 작성한 게시글/댓글도 함께 삭제됩니다.')) {
+     return;
+   }
+   try {
+     await authAPI.deleteUser(user.id);
+     // 탈퇴 후 로컬 상태 정리 및 홈 이동
+     logout();
+     window.alert('회원탈퇴가 완료되었습니다. 그동안 이용해주셔서 감사합니다.');
+     navigate('/');
+   } catch (err) {
+     console.error('회원탈퇴 실패:', err);
+     const msg = err?.response?.data?.error || '회원탈퇴에 실패했습니다.';
+     window.alert(msg);
    }
  };
 
@@ -75,7 +97,7 @@ const ProfilePage = () => {
        {/* 액션 버튼들 */}
        <div className="action-card">
          <div className="action-buttons">
-           <Link to="/withdraw" className="action-button">회원탈퇴</Link>
+           <button onClick={handleWithdraw} className="action-button">회원탈퇴</button>
            <button onClick={handleLogout} className="action-button logout">로그아웃</button>
          </div>
        </div>

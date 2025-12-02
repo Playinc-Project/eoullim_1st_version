@@ -7,6 +7,7 @@ import com.eoullim_backend.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/users")
@@ -18,12 +19,17 @@ public class UserController {
     
     // 회원가입: POST /api/users/signup (구체적인 경로를 먼저)
     @PostMapping("/signup")
-    public ResponseEntity<UserDTO> signup(@RequestBody UserRequestDTO requestDTO) {
+    public ResponseEntity<?> signup(@RequestBody UserRequestDTO requestDTO) {
         try {
             UserDTO user = userService.signup(requestDTO);
             return ResponseEntity.status(201).body(user);
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
+            String message = e.getMessage() != null ? e.getMessage() : "회원가입 요청이 올바르지 않습니다.";
+            // 이메일 중복은 409로 구분 응답
+            if (message.contains("이미 존재하는 이메일")) {
+                return ResponseEntity.status(409).body(new ErrorResponse(message));
+            }
+            return ResponseEntity.badRequest().body(new ErrorResponse(message));
         }
     }
     
@@ -65,6 +71,20 @@ public class UserController {
             return ResponseEntity.ok(user);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
+        }
+    }
+
+    // 이메일로 사용자 존재 확인: GET /api/users/email/{email}
+    @GetMapping("/email/{email}")
+    public ResponseEntity<?> checkEmail(@PathVariable String email) {
+        try {
+            Optional<UserDTO> userOpt = userService.findByEmail(email);
+            if (userOpt.isPresent()) {
+                return ResponseEntity.ok(userOpt.get());
+            }
+            return ResponseEntity.notFound().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));
         }
     }
     

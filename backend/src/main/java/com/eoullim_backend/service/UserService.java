@@ -3,6 +3,10 @@ package com.eoullim_backend.service;
 import com.eoullim_backend.dto.UserDTO;
 import com.eoullim_backend.dto.UserRequestDTO;
 import com.eoullim_backend.entity.User;
+import com.eoullim_backend.entity.Post;
+import com.eoullim_backend.repository.PostRepository;
+import com.eoullim_backend.repository.CommentRepository;
+import org.springframework.transaction.annotation.Transactional;
 import com.eoullim_backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -13,6 +17,8 @@ import java.util.Optional;
 public class UserService {
     
     private final UserRepository userRepository;
+    private final PostRepository postRepository;
+    private final CommentRepository commentRepository;
     
     // 회원가입
     public UserDTO signup(UserRequestDTO requestDTO) {
@@ -60,6 +66,10 @@ public class UserService {
         return convertToDTO(user);
     }
     
+    public Optional<UserDTO> findByEmail(String email) {
+        return userRepository.findByEmail(email).map(this::convertToDTO);
+    }
+    
     // 사용자 정보 수정
     public UserDTO updateUser(Long id, UserRequestDTO requestDTO) {
         User user = userRepository.findById(id)
@@ -80,7 +90,18 @@ public class UserService {
     }
     
     // 사용자 삭제
+    @Transactional
     public void deleteUser(Long id) {
+        // 사용자가 작성한 댓글 선삭제
+        commentRepository.findByUserId(id).forEach(c -> commentRepository.deleteById(c.getId()));
+
+        // 사용자가 작성한 게시글의 댓글 선삭제 후 게시글 삭제
+        for (Post p : postRepository.findByUserId(id)) {
+            commentRepository.deleteByPostId(p.getId());
+            postRepository.deleteById(p.getId());
+        }
+
+        // 마지막으로 사용자 삭제
         userRepository.deleteById(id);
     }
     

@@ -23,62 +23,44 @@ const BoardPage = () => {
         <h1 className="board-title">자유게시판</h1>
       </header>
 
-      <div className="posts-list">
-        {samplePosts.map(post => (
-          <div 
-            key={post.id} 
-            className="post-card" 
-            onClick={() => navigate(`/post/${post.id}`, { state: { from: 'board' } })}
-            style={{ cursor: 'pointer' }}
-          >
-            <div className="post-header">
-              <span className="post-category">{post.category}</span>
-            </div>
-            <div className="post-main">
-              <h3 className="post-title">{post.title}</h3>
-              <p className="post-content" style={{ textAlign: 'left' }}>{post.content}</p>
-            </div>
-            <div className="post-footer">
-              <div className="footer-left">
-                <span className="post-author">{post.author}</span>
-                <span className="post-date">{post.date}</span>
+      {/* 게시글 리스트 */}
+      <div className="posts-wrapper">
+        <div className="posts-list">
+          {samplePosts.map(post => (
+            <div 
+              key={post.id} 
+              className="post-card" 
+              onClick={() => navigate(`/post/${post.id}`, { state: { from: 'board' } })}
+              style={{ cursor: 'pointer' }}
+            >
+              <div className="post-header">
+                <span className="post-category">{post.category}</span>
               </div>
-              <div className="post-stats">
-                <span className="likes">👍 {post.likes}</span>
-                <span className="comments">💬 {post.comments}</span>
-                <button className="action-button" onClick={() => navigate('/messages/write')}>⋮</button>
+              <div className="post-main">
+                <h3 className="post-title">{post.title}</h3>
+                <p className="post-content" style={{ textAlign: 'left' }}>{post.content}</p>
+              </div>
+              <div className="post-footer">
+                <div className="footer-left">
+                  <span className="post-author">{post.author}</span>
+                  <span className="post-date">{post.date}</span>
+                </div>
+                <div className="post-stats">
+                  <span className="likes">👍 {post.likes}</span>
+                  <span className="comments">💬 {post.comments}</span>
+                  <button className="action-button" onClick={() => navigate('/messages/write')}>⋮</button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
+
       </div>
 
-      <div style={{
-        position: 'fixed',
-        bottom: '20px',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        textDecoration: 'none',
-        zIndex: 1000,
-        maxWidth: '430px',
-        width: '100%',
-      }}>
+      {/* FAB: 컨테이너 기준 오른쪽/아래 고정 */}
+      <div className="fab-wrapper">
         <Link to="/board/write" className="add-button-link">
-          <button className="add-button" style={{
-            width: '60px',
-            height: '60px',
-            borderRadius: '50%',
-            border: 'none',
-            background: '#6C63FF',
-            color: 'white',
-            fontSize: '32px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-            float: 'right'
-          }}>+</button>
+          <button className="add-button">+</button>
         </Link>
       </div>
     </div>

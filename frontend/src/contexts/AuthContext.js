@@ -32,7 +32,17 @@ export const AuthProvider = ({ children }) => {
       setLoading(true);
       
       const response = await authAPI.login(email, password);
-      const userData = response.data;
+      let userData = response.data;
+      
+      // 로그인 응답에 필드가 누락된 경우 프로필로 보강
+      if (!userData?.username || !userData?.email) {
+        try {
+          const prof = await authAPI.getProfile(userData?.id);
+          if (prof?.data) userData = { ...userData, ...prof.data };
+        } catch (_) {
+          // ignore profile fetch errors
+        }
+      }
       
       // 사용자 정보 저장
       authHelper.setCurrentUser(userData);
@@ -64,9 +74,16 @@ export const AuthProvider = ({ children }) => {
       setLoading(true);
       
       const response = await authAPI.signup(userData);
-      const newUser = response.data;
+      let newUser = response.data;
       
-      // 회원가입 후 자동 로그인
+      // 회원가입 후 자동 로그인, 필요 시 프로필로 보강
+      if (!newUser?.username || !newUser?.email) {
+        try {
+          const prof = await authAPI.getProfile(newUser?.id);
+          if (prof?.data) newUser = { ...newUser, ...prof.data };
+        } catch (_) {}
+      }
+      
       authHelper.setCurrentUser(newUser);
       setUser(newUser);
       

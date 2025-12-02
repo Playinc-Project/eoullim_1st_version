@@ -99,17 +99,13 @@ function Main() {
                   <h3 className="post-title">{post.title}</h3>
                   <span className="post-views">조회 {post.viewCount}</span>
                 </div>
-
                 <p className="post-content">
                   {post.content.substring(0, 100)}
                   {post.content.length > 100 ? '...' : ''}
                 </p>
-
                 <div className="post-footer">
                   <span className="post-author">{post.userId}</span>
-                  <span className="post-time">
-                    {formatDate(post.createdAt)}
-                  </span>
+                  <span className="post-time">{formatDate(post.createdAt)}</span>
                   <div className="post-stats">
                     <span>♥ {post.likeCount}</span>
                     <span>💬 댓글</span>
@@ -119,16 +115,15 @@ function Main() {
             ))}
           </div>
         )}
+        {/* + 버튼: main-content 기준 오른쪽 끝 */}
+        <button
+          className="fab-button"
+          onClick={() => navigate('/board/write')}
+          title="새 글 작성"
+        >
+          +
+        </button>
       </div>
-
-      {/* 글쓰기 버튼 */}
-      <button
-        className="fab-button"
-        onClick={() => navigate('/board/write')}
-        title="새 글 작성"
-      >
-        +
-      </button>
     </div>
   );
 }
